@@ -2,7 +2,7 @@ groups:
 - name: targets
   rules:
   - alert: monitor_service_down
-    expr: up{job="nodeexporter"} == 0
+    expr: up{group="master"} == 0
     for: 30s
     labels:
       severity: critical
@@ -10,37 +10,44 @@ groups:
       summary: "Monitor service non-operational"
       description: "Service {{ $labels.instance }} is down."
 
-- name: host
+- name: jateng_host
   rules:
-  - alert: high_cpu_load
-    expr: node_load1 > 1.5
+  - alert: jateng_server_down
+    expr: up{instance="node.jateng.tanggap.in:80"} == 0
     for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Monitor server"
+      description: "Server {{ $labels.instance }} is down."
+
+  - alert: server_network_down
+    expr: node_network_up{instance="node.jateng.tanggap.in:80", device="ens18"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Server network"
+      description: "Server network {{ $labels.instance }} is down."
+
+  - alert: server_memory
+    expr: node_memory_MemAvailable_bytes{instance="node.jateng.tanggap.in:80"} / node_memory_MemTotal_bytes{instance="node.jateng.tanggap.in:80"} * 100 > 90
+    for: 30m
     labels:
       severity: warning
     annotations:
-      summary: "Server under high load"
-      description: "Docker host is under high load, the avg load 1m is at {{ $value}}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+      summary: "Server memory full"
+      description: "Server memory is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
 
-  - alert: high_memory_load
-    expr: (sum(node_memory_MemTotal_bytes) - sum(node_memory_MemFree_bytes + node_memory_Buffers_bytes + node_memory_Cached_bytes) ) / sum(node_memory_MemTotal_bytes) * 100 > 85
-    for: 30s
-    labels:
-      severity: warning
-    annotations:
-      summary: "Server memory is almost full"
-      description: "Docker host memory usage is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
-
-  - alert: high_storage_load
+  - alert: server_storage
     expr: (node_filesystem_size_bytes{fstype="aufs"} - node_filesystem_free_bytes{fstype="aufs"}) / node_filesystem_size_bytes{fstype="aufs"}  * 100 > 85
+    expr: node_filesystem_free_bytes{mountpoint ="/rootfs"} / node_filesystem_size_bytes{mountpoint ="/rootfs"} * 100 < 10
     for: 30s
     labels:
       severity: warning
     annotations:
       summary: "Server storage is almost full"
       description: "Docker host storage usage is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
-
-
-##__________________________________________________________________________________________________________________________________________________________________##
 
 - name: containers
   rules:
@@ -53,19 +60,21 @@ groups:
       summary: "Jenkins down"
       description: "Jenkins container is down for more than 30 seconds."
 
-#  - alert: jenkins_high_cpu
-#    expr: sum(rate(container_cpu_usage_seconds_total{name="jenkins"}[1m])) / count(node_cpu_seconds_total{mode="system"}) * 100 > 10
-#    for: 30s
-#    labels:
-#      severity: warning
-#    annotations:
-#      summary: "Jenkins high CPU usage"
-#      description: "Jenkins CPU usage is {{ humanize $value}}%."
-#  - alert: jenkins_high_memory
-#    expr: sum(container_memory_usage_bytes{name="jenkins"}) > 1200000000
-#    for: 30s
-#    labels:
-#      severity: warning
-#    annotations:
-#      summary: "Jenkins high memory usage"
-#      description: "Jenkins memory consumption is at {{ humanize $value}}."
+  - alert: jenkins_high_cpu
+    expr: sum(rate(container_cpu_usage_seconds_total{name="jenkins"}[1m])) / count(node_cpu_seconds_total{mode="system"}) * 100 > 10
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Jenkins high CPU usage"
+      description: "Jenkins CPU usage is {{ humanize $value}}%."
+
+  - alert: jenkins_high_memory
+    expr: sum(container_memory_usage_bytes{name="jenkins"}) > 1200000000
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Jenkins high memory usage"
+      description: "Jenkins memory consumption is at {{ humanize $value}}."
+
