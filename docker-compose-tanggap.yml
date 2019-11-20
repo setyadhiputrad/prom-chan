@@ -1,0 +1,146 @@
+version: '3.0'
+
+networks:
+  monitor-net:
+    external:
+      name: monitor
+
+volumes:
+    prometheus_data:
+      driver: local
+    grafana_data:
+      driver: local
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.13.1
+    container_name: prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: always
+    expose:
+      - 9090
+    networks:
+      - monitor-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prom.ddns.me`)"
+      - "traefik.http.routers.prometheus.entrypoints=web"
+      - "traefik.http.routers.prometheus.middlewares=authprom"
+      - "traefik.http.middlewares.authprom.basicauth.users=developer:$$apr1$$Puwa6jjy$$dJCPJ0.NVOJso1/bkO302." # developer/developer+1
+
+
+  alertmanager:
+    image: prom/alertmanager:v0.19.0
+    container_name: alertmanager
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    restart: always
+    expose:
+      - 9093
+    networks:
+      - monitor-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alertmanager.rule=Host(`alert.ddns.me`)"
+      - "traefik.http.routers.alertmanager.entrypoints=web"
+      - "traefik.http.routers.alertmanager.middlewares=authalert"
+      - "traefik.http.middlewares.authalert.basicauth.users=developer:$$apr1$$Puwa6jjy$$dJCPJ0.NVOJso1/bkO302." # developer/developer+1
+
+
+  nodeexporter:
+    image: prom/node-exporter:v0.18.1
+    container_name: nodeexporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: always
+    expose:
+      - 9100
+    networks:
+      - monitor-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nodeexporter.rule=Host(`nd.ddns.me`)"
+      - "traefik.http.routers.nodeexporter.entrypoints=web"
+      - "traefik.http.routers.nodeexporter.middlewares=authnode"
+      - "traefik.http.middlewares.authnode.basicauth.users=developer:$$apr1$$Puwa6jjy$$dJCPJ0.NVOJso1/bkO302." # developer/developer+1
+
+  cadvisor:
+    image: google/cadvisor:v0.33.0
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
+    restart: always
+    expose:
+      - 8080
+    networks:
+      - monitor-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cadvisor.rule=Host(`cadvisor.ddns.me`)"
+      - "traefik.http.routers.cadvisor.entrypoints=web"
+      - "traefik.http.routers.cadvisor.middlewares=authca"
+      - "traefik.http.middlewares.authca.basicauth.users=developer:$$apr1$$Puwa6jjy$$dJCPJ0.NVOJso1/bkO302." # developer/developer+1
+
+  grafana:
+    image: grafana/grafana:6.3.6
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/datasources:/etc/grafana/datasources
+      - ./grafana/dashboards:/etc/grafana/dashboards
+      - ./grafana/setup.sh:/setup.sh
+    entrypoint: /setup.sh
+    environment:
+      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-Admin-Grafana}
+      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin+1234+}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: always
+    expose:
+      - 3000
+    networks:
+      - monitor-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`dashboard.ddns.me`)"
+      - "traefik.http.routers.grafana.entrypoints=web"
+      #- "traefik.http.routers.traefik.middlewares=authtanggap"
+      #- "traefik.http.middlewares.authtanggap.basicauth.users=developer:$$apr1$$Puwa6jjy$$dJCPJ0.NVOJso1/bkO302." # developer/developer+1
+
+  pushgateway:
+    image: prom/pushgateway:v1.0.0
+    container_name: pushgateway
+    restart: always
+    expose:
+      - 9091
+    networks:
+      - monitor-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pushgateway.rule=Host(`push.ddns.me`)"
+      - "traefik.http.routers.pushgateway.entrypoints=web"
+      - "traefik.http.routers.pushgateway.middlewares=authpush"
+      - "traefik.http.middlewares.authpush.basicauth.users=developer:$$apr1$$Puwa6jjy$$dJCPJ0.NVOJso1/bkO302." # developer/developer+1
