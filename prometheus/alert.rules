@@ -31,17 +31,18 @@ groups:
       description: "Server network {{ $labels.instance }} is down."
 
   - alert: server_memory
-    expr: node_memory_MemAvailable_bytes{instance="node.jateng.tanggap.in:80"} / node_memory_MemTotal_bytes{instance="node.jateng.tanggap.in:80"} * 100 > 90
+    expr: node_memory_MemAvailable_bytes{instance="node.jateng.tanggap.in:80"} / node_memory_MemTotal_bytes{instance="node.jateng.tanggap.in:80"} * 100 < 15
     for: 30m
     labels:
       severity: warning
     annotations:
       summary: "Server memory full"
-      description: "Server memory is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+      description: "Server memory available is {{ humanize $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
 
   - alert: server_storage
     expr: (node_filesystem_size_bytes{fstype="aufs"} - node_filesystem_free_bytes{fstype="aufs"}) / node_filesystem_size_bytes{fstype="aufs"}  * 100 > 85
     expr: node_filesystem_free_bytes{mountpoint ="/rootfs"} / node_filesystem_size_bytes{mountpoint ="/rootfs"} * 100 < 10
+    expr: node_file
     for: 30s
     labels:
       severity: warning
