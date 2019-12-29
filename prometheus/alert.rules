@@ -20,15 +20,24 @@ groups:
     annotations:
       summary: "Monitor server"
       description: "Server {{ $labels.instance }} is down."
+  
+  - alert: jateng_server_cpu
+    expr: node_load1{instance="node.jateng.tanggap.in:80"} > 1.5
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Server cpu high load"
+      description: "Docker host is cpu high load, the avg load is {{ $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
 
-  - alert: server_network_down
+  - alert: jateng_server_network
     expr: node_network_up{instance="node.jateng.tanggap.in:80", device="ens18"} == 0
     for: 30s
     labels:
       severity: critical
     annotations:
       summary: "Server network"
-      description: "Server network {{ $labels.instance }} is down."
+      description: "Server network {{ $value }} is down. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
 
   - alert: server_memory
     expr: node_memory_MemAvailable_bytes{instance="node.jateng.tanggap.in:80"} / node_memory_MemTotal_bytes{instance="node.jateng.tanggap.in:80"} * 100 < 15
