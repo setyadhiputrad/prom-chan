@@ -1,12 +1,15 @@
-version: '2.1'
+version: '3.0'
 
 networks:
   monitor-net:
-    driver: bridge
+    external:
+      name: monitor
 
 volumes:
-    prometheus_data: {}
-    grafana_data: {}
+    prometheus_data:
+      driver: local
+    grafana_data:
+      driver: local
 
 services:
 
@@ -23,13 +26,11 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
-    restart: unless-stopped
+    restart: always
     expose:
       - 9090
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
 
   alertmanager:
     image: prom/alertmanager:v0.19.0
@@ -39,13 +40,11 @@ services:
     command:
       - '--config.file=/etc/alertmanager/config.yml'
       - '--storage.path=/alertmanager'
-    restart: unless-stopped
+    restart: always
     expose:
       - 9093
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
 
   nodeexporter:
     image: prom/node-exporter:v0.18.1
@@ -59,13 +58,11 @@ services:
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
-    restart: unless-stopped
+    restart: always
     expose:
       - 9100
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
 
   cadvisor:
     image: google/cadvisor:v0.33.0
@@ -75,14 +72,12 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-      #- /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
-    restart: unless-stopped
+      - /cgroup:/cgroup:ro #doesn't work on MacOS
+    restart: always
     expose:
       - 8080
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
 
   grafana:
     image: grafana/grafana:6.3.6
@@ -97,27 +92,23 @@ services:
       - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
-    restart: unless-stopped
+    restart: always
     expose:
       - 3000
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
 
   pushgateway:
     image: prom/pushgateway:v1.0.0
     container_name: pushgateway
-    restart: unless-stopped
+    restart: always
     expose:
       - 9091
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
 
   caddy:
-    image: stefanprodan/caddy
+    image: caddy:latest
     container_name: caddy
     ports:
       - "3000:3000"
@@ -129,8 +120,6 @@ services:
     environment:
       - ADMIN_USER=${ADMIN_USER:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
-    restart: unless-stopped
+    restart: always
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"

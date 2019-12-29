@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.0'
 
 services:
 
@@ -16,8 +16,6 @@ services:
       - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
     restart: unless-stopped
     network_mode: host
-    labels:
-      org.label-schema.group: "monitoring"
 
   cadvisor:
     image: google/cadvisor:v0.33.0
@@ -30,7 +28,3 @@ services:
       - /cgroup:/cgroup:ro
     restart: unless-stopped
     network_mode: host
-    labels:
-      org.label-schema.group: "monitoring"
-  
-
