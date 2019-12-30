@@ -9,6 +9,7 @@ groups:
     annotations:
       summary: "Monitor service non-operational"
       description: "Monitor service {{ $labels.instance }} is down."
+##______________________________________________________________________________________________________________________________________________________________________________________##
 
 - name: jateng_host
   rules:
@@ -56,6 +57,7 @@ groups:
     annotations:
       summary: "Server storage is almost full"
       description: "Server storage available is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+##______________________________________________________________________________________________________________________________________________________________________________________##
 
 - name: gcp_host
   rules:
@@ -103,6 +105,55 @@ groups:
     annotations:
       summary: "Server storage is almost full"
       description: "Server storage available is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+##______________________________________________________________________________________________________________________________________________________________________________________##
+
+- name: tanggap_host
+  rules:
+  - alert: tanggap_server_down
+    expr: up{instance="node.tanggap.in:80"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Monitor server"
+      description: "Monitor service is down. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+
+  - alert: tanggap_server_cpu
+    expr: node_load1{instance="node.tanggap.in:80"} > 1.5
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Server cpu high load"
+      description: "Server average load is {{ $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+
+  - alert: tanggap_server_network
+    expr: node_network_up{instance="node.tanggap.in:80", device="eth0"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Server network down"
+      description: "Server network available is {{ $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+
+  - alert: tanggap_server_memory
+    expr: node_memory_MemAvailable_bytes{instance="node.tanggap.in:80"} / node_memory_MemTotal_bytes{instance="node.tanggap.in:80"} * 100 < 15
+    for: 60m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Server memory full"
+      description: "Server memory available is {{ humanize $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+
+  - alert: tanggap_server_storage
+    expr: node_filesystem_free_bytes{instance="node.tanggap.in:80", mountpoint ="/"} / node_filesystem_size_bytes{instance="node.tanggap.in:80", mountpoint ="/"} * 100 < 20
+    for: 60m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Server storage is almost full"
+      description: "Server storage available is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+##______________________________________________________________________________________________________________________________________________________________________________________##
 
 - name: containers
   rules:
