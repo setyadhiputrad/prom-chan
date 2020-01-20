@@ -1,0 +1,76 @@
+version: '3.0'
+
+networks:
+  monitor-net:
+    external:
+      name: monitor
+
+services:
+  nodeexporter:
+    image: prom/node-exporter:v0.18.1
+    container_name: nodeexporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: always
+    networks:
+      - monitor-net
+    labels:
+      # http router
+      - "traefik.enable=true"
+      - "traefik.http.routers.nodeexporter.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.nodeexporter.entrypoints=web"
+      - "traefik.http.routers.nodeexporter.middlewares=node-https-redirect"
+      - "traefik.http.middlewares.node-https-redirect.redirectscheme.scheme=https"
+
+      # https router
+      - "traefik.http.routers.nodeexporter-secure.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.nodeexporter-secure.entrypoints=websecure"
+      - "traefik.http.routers.nodeexporter-secure.tls=true"
+      - "traefik.http.routers.nodeexporter-secure.tls.certresolver=sptth"
+      - "traefik.http.routers.nodeexporter-secure.service=nodeexporter"
+      - "traefik.http.routers.nodeexporter-secure.middlewares=node-auth"
+      - "traefik.http.middlewares.node-auth.basicauth.users=${USERNAME}:${PASSWORD}" 
+
+      # service port
+      - "traefik.http.services.nodeexporter.loadbalancer.server.port=${PORT_SERVICE}"
+      - "traefik.docker.network=monitor"
+
+  cadvisor:
+    image: google/cadvisor:v0.33.0
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro
+    restart: always
+    networks:
+      - monitor-net
+    labels:
+      # http router
+      - "traefik.enable=true"
+      - "traefik.http.routers.cadvisor.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.cadvisor.entrypoints=web"
+      - "traefik.http.routers.cadvisor.middlewares=cadvisor-https-redirect"
+      - "traefik.http.middlewares.cadvisor-https-redirect.redirectscheme.scheme=https"
+
+      # https router
+      - "traefik.http.routers.cadvisor-secure.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.cadvisor-secure.entrypoints=websecure"
+      - "traefik.http.routers.cadvisor-secure.tls=true"
+      - "traefik.http.routers.cadvisor-secure.tls.certresolver=sptth"
+      - "traefik.http.routers.cadvisor-secure.service=cadvisor"
+      - "traefik.http.routers.cadvisor-secure.middlewares=cadvisor-auth"
+      - "traefik.http.middlewares.cadvisor-auth.basicauth.users=${USERNAME}:${PASSWORD}" 
+
+      # service port
+      - "traefik.http.services.cadvisor.loadbalancer.server.port=${PORT_SERVICE}"
+      - "traefik.docker.network=monitor"

@@ -31,22 +31,22 @@ services:
     labels:
       # http router
       - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.prometheus.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.prometheus.entrypoints=web"
       - "traefik.http.routers.prometheus.middlewares=prom-https-redirect"
       - "traefik.http.middlewares.prom-https-redirect.redirectscheme.scheme=https"
 
       # https router
-      - "traefik.http.routers.prometheus-secure.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.prometheus-secure.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.prometheus-secure.entrypoints=websecure"
       - "traefik.http.routers.prometheus-secure.tls=true"
       - "traefik.http.routers.prometheus-secure.tls.certresolver=sptth"
       - "traefik.http.routers.prometheus-secure.service=prometheus"
       - "traefik.http.routers.prometheus-secure.middlewares=prom-auth"
-      - "traefik.http.middlewares.prom-auth.basicauth.users=$USERNAME:$PASSWORD"
+      - "traefik.http.middlewares.prom-auth.basicauth.users=${USERNAME}:${PASSWORD}"
 
       # service port
-      - "traefik.http.services.prometheus.loadbalancer.server.port=$PORT_SERVICE"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=${PORT_SERVICE}"
       - "traefik.docker.network=monitor"
 
   alertmanager:
@@ -63,22 +63,22 @@ services:
     labels:
       # http router
       - "traefik.enable=true"
-      - "traefik.http.routers.alertmanager.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.alertmanager.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.alertmanager.entrypoints=web"
       - "traefik.http.routers.alertmanager.middlewares=alert-https-redirect"
       - "traefik.http.middlewares.alert-https-redirect.redirectscheme.scheme=https"
 
       # https router
-      - "traefik.http.routers.alertmanager-secure.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.alertmanager-secure.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.alertmanager-secure.entrypoints=websecure"
       - "traefik.http.routers.alertmanager-secure.tls=true"
       - "traefik.http.routers.alertmanager-secure.tls.certresolver=sptth"
       - "traefik.http.routers.alertmanager-secure.service=alertmanager"
       - "traefik.http.routers.alertmanager-secure.middlewares=alert-auth"
-      - "traefik.http.middlewares.alert-auth.basicauth.users=$USERNAME:$PASSWORD" 
+      - "traefik.http.middlewares.alert-auth.basicauth.users=${USERNAME}:${PASSWORD}" 
 
       # service port
-      - "traefik.http.services.alertmanager.loadbalancer.server.port=$PORT_SERVICE"
+      - "traefik.http.services.alertmanager.loadbalancer.server.port=${PORT_SERVICE}"
       - "traefik.docker.network=monitor"
 
   nodeexporter:
@@ -99,22 +99,22 @@ services:
     labels:
       # http router
       - "traefik.enable=true"
-      - "traefik.http.routers.nodeexporter.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.nodeexporter.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.nodeexporter.entrypoints=web"
       - "traefik.http.routers.nodeexporter.middlewares=node-https-redirect"
       - "traefik.http.middlewares.node-https-redirect.redirectscheme.scheme=https"
 
       # https router
-      - "traefik.http.routers.nodeexporter-secure.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.nodeexporter-secure.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.nodeexporter-secure.entrypoints=websecure"
       - "traefik.http.routers.nodeexporter-secure.tls=true"
       - "traefik.http.routers.nodeexporter-secure.tls.certresolver=sptth"
       - "traefik.http.routers.nodeexporter-secure.service=nodeexporter"
       - "traefik.http.routers.nodeexporter-secure.middlewares=node-auth"
-      - "traefik.http.middlewares.node-auth.basicauth.users=$USERNAME:$PASSWORD" 
+      - "traefik.http.middlewares.node-auth.basicauth.users=${USERNAME}:${PASSWORD}" 
 
       # service port
-      - "traefik.http.services.nodeexporter.loadbalancer.server.port=$PORT_SERVICE"
+      - "traefik.http.services.nodeexporter.loadbalancer.server.port=${PORT_SERVICE}"
       - "traefik.docker.network=monitor"
 
   cadvisor:
@@ -132,22 +132,22 @@ services:
     labels:
       # http router
       - "traefik.enable=true"
-      - "traefik.http.routers.cadvisor.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.cadvisor.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.cadvisor.entrypoints=web"
       - "traefik.http.routers.cadvisor.middlewares=cadvisor-https-redirect"
       - "traefik.http.middlewares.cadvisor-https-redirect.redirectscheme.scheme=https"
 
       # https router
-      - "traefik.http.routers.cadvisor-secure.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.cadvisor-secure.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.cadvisor-secure.entrypoints=websecure"
       - "traefik.http.routers.cadvisor-secure.tls=true"
       - "traefik.http.routers.cadvisor-secure.tls.certresolver=sptth"
       - "traefik.http.routers.cadvisor-secure.service=cadvisor"
       - "traefik.http.routers.cadvisor-secure.middlewares=cadvisor-auth"
-      - "traefik.http.middlewares.cadvisor-auth.basicauth.users=$USERNAME:$PASSWORD" 
+      - "traefik.http.middlewares.cadvisor-auth.basicauth.users=${USERNAME}:${PASSWORD}" 
 
       # service port
-      - "traefik.http.services.cadvisor.loadbalancer.server.port=$PORT_SERVICE"
+      - "traefik.http.services.cadvisor.loadbalancer.server.port=${PORT_SERVICE}"
       - "traefik.docker.network=monitor"
 
   grafana:
@@ -171,20 +171,20 @@ services:
     labels:
       # http router
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`$DOMaIN`)"
+      - "traefik.http.routers.grafana.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.routers.grafana.middlewares=grafana-https-redirect"
       - "traefik.http.middlewares.grafana-https-redirect.redirectscheme.scheme=https"
 
       # https router
-      - "traefik.http.routers.grafana-secure.rule=Host(`$DOMaIN`)"
+      - "traefik.http.routers.grafana-secure.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.grafana-secure.entrypoints=websecure"
       - "traefik.http.routers.grafana-secure.tls=true"
       - "traefik.http.routers.grafana-secure.tls.certresolver=sptth"
       - "traefik.http.routers.grafana-secure.service=grafana"
 
       # service port
-      - "traefik.http.services.grafana.loadbalancer.server.port=$PORT_SERVICE"
+      - "traefik.http.services.grafana.loadbalancer.server.port=${PORT_SERVICE}"
       - "traefik.docker.network=monitor"
 
   pushgateway:
@@ -198,20 +198,20 @@ services:
     labels:
       # http router
       - "traefik.enable=true"
-      - "traefik.http.routers.pushgateway.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.pushgateway.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.pushgateway.entrypoints=web"
       - "traefik.http.routers.pushgateway.middlewares=push-https-redirect"
       - "traefik.http.middlewares.push-https-redirect.redirectscheme.scheme=https"
 
       # https router
-      - "traefik.http.routers.pushgateway-secure.rule=Host(`$DOMAIN`)"
+      - "traefik.http.routers.pushgateway-secure.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.pushgateway-secure.entrypoints=websecure"
       - "traefik.http.routers.pushgateway-secure.tls=true"
       - "traefik.http.routers.pushgateway-secure.tls.certresolver=sptth"
       - "traefik.http.routers.pushgateway-secure.service=pushgateway"
       - "traefik.http.routers.pushgateway-secure.middlewares=push-auth"
-      - "traefik.http.middlewares.push-auth.basicauth.users=$USERNAME:$PASSWORD" 
+      - "traefik.http.middlewares.push-auth.basicauth.users=${USERNAME}:${PASSWORD}" 
 
       # service port
-      - "traefik.http.services.pushgateway.loadbalancer.server.port=$PORT_SERVICE"
+      - "traefik.http.services.pushgateway.loadbalancer.server.port=${PORT_SERVICE}"
       - "traefik.docker.network=monitor"
