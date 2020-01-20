@@ -9,12 +9,14 @@ global:
 
 # Load and evaluate rules in this file every 'evaluation_interval' seconds.
 rule_files:
-  - "alert.rules"
+  - "node-*.rules"
+  - "service-*.rules"
+  - "cloud-gateway.rules"
 
 # A scrape configuration containing exactly one endpoint to scrape.
 scrape_configs:
   - job_name: 'nodeexporter'
-    scrape_interval: 5s
+    scrape_interval: 10s
     metrics_path: /metrics
     basic_auth:
       username: ${USERNAME}
@@ -23,18 +25,41 @@ scrape_configs:
       - targets: ['nodeexporter:9100']
         labels:
           group: 'master'
-      - targets: ['node.tanggap.in']
+      - targets: ['node.tanggap.in:80']
         labels:
           group: 'frontend'
-      - targets: ['node.jateng.tanggap.in']
+      - targets: ['node.jateng.tanggap.in:80']
         labels:
           group: 'frontend'
       - targets: ['spgdt.setyadhiputra.com:9100']
         labels:
           group: 'backend'
+      - targets: ['node.gcp.tanggap.in:80']
+        labels:
+          group: 'backend'
+
+  - job_name: 'cadvisor'
+    scrape_interval: 10s
+    metrics_path: /metrics
+    basic_auth:
+      username: ${USERNAME}
+      password: ${PASSWORD}
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          group: 'master'
+      - targets: ['cadvisor.tanggap.in:80']
+        labels:
+          group: 'frontend'
+      - targets: ['cadvisor.jateng.tanggap.in:80']
+        labels:
+          group: 'frontend'
+      - targets: ['cadvisor.gcp.tanggap.in:80']
+        labels:
+          group: 'backend'
 
   - job_name: 'traefik'
-    scrape_interval: 5s
+    scrape_interval: 10s
     metrics_path: /metrics
     basic_auth:
       username: ${USERNAME}
@@ -49,24 +74,30 @@ scrape_configs:
       - targets: ['traefik.jateng.tanggap.in:8080']
         labels:
           group: 'frontend'
+      - targets: ['traefik.gcp.tanggap.id:8080']
+        labels:
+          group: 'backend'
 
-  - job_name: 'cadvisor'
-    scrape_interval: 5s
+  - job_name: 'dockerD'
+    scrape_interval: 10s
     metrics_path: /metrics
     basic_auth:
       username: ${USERNAME}
       password: ${PASSWORD}
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets: ['tytyd.ddns.net:9100']
         labels:
           group: 'master'
-      - targets: ['cadvisor.tanggap.in']
+      - targets: ['api.setyadhiputra.com:9100']
         labels:
           group: 'frontend'
-      - targets: ['cadvisor.jateng.tanggap.in']
+      - targets: ['dinkes.jateng.tanggap.in:9100']
         labels:
           group: 'frontend'
-      - targets: ['spgdt.setyadhiputra.com:18080']
+      - targets: ['spgdt.setyadhiputra.com:9101']
+        labels:
+          groups: 'backend'
+      - targets: ['tanggap.setyadhiputra.com:9100']
         labels:
           groups: 'backend'
 
