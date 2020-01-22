@@ -1,0 +1,61 @@
+groups:
+- name : image_dev
+  rules:
+  - alert: Container_Killed
+    expr: time() - container_last_seen{name="image-dev"} > 50
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container killed (instance {{ $labels.name }})"
+      description: "A container has disappeared\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: Container_Cpu_Usage
+    expr: (sum(rate(container_cpu_usage_seconds_total{name="image-dev"}[1440m])) * 100) > 1.5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container CPU usage (instance {{ $labels.name }})"
+      description: "Container CPU usage is above 1.5\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: Container_Memory_Usage
+    expr: (sum(container_memory_usage_bytes{name="image-dev"}) / sum(node_memory_MemTotal_bytes{instance="node.gcp.tanggap.in:80"}) * 100) > 50
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container Memory usage (instance {{ $labels.name }})"
+      description: "Container Memory usage is above 50%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+##______________________________________________________________________________________________________________________________________________________________________________________##
+
+- name : image_prod
+  rules:
+  - alert: Container_Killed
+    expr: time() - container_last_seen{name="image-prod"} > 50
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container killed (instance {{ $labels.name }})"
+      description: "A container has disappeared\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: Container_Cpu_Usage
+    expr: (sum(rate(container_cpu_usage_seconds_total{name="image-prod"}[1440m])) * 100) > 1.5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container CPU usage (instance {{ $labels.name }})"
+      description: "Container CPU usage is above 1.5\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: Container_Memory_Usage
+    expr: (sum(container_memory_usage_bytes{name="image-prod"}) / sum(node_memory_MemTotal_bytes{instance="node.gcp.tanggap.in:80"}) * 100) > 50
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container Memory usage (instance {{ $labels.name }})"
+      description: "Container Memory usage is above 50%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+##______________________________________________________________________________________________________________________________________________________________________________________##
+##______________________________________________________________________________________________________________________________________________________________________________________##
