@@ -1,0 +1,48 @@
+groups:
+- name: batang_host
+  rules:
+  - alert: batang_server_down
+    expr: up{instance="spgdt.setyadhiputra.com:9100"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Monitor server"
+      description: "Monitor service is down. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+
+  - alert: batang_server_cpu
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle",instance="spgdt.setyadhiputra.com:9100"}[5m])) * 100) > 90
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Server cpu high load"
+      description: "Server average load is {{ $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+
+  - alert: batang_server_network
+    expr: node_network_up{instance="spgdt.setyadhiputra.com:9100", device="eno1"} == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Server network down"
+      description: "Server network available is {{ $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+
+  - alert: batang_server_memory
+    expr: node_memory_MemAvailable_bytes{instance="spgdt.setyadhiputra.com:9100"} / node_memory_MemTotal_bytes{instance="spgdt.setyadhiputra.com:9100"} * 100 < 15
+    for: 60m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Server memory full"
+      description: "Server memory available is {{ humanize $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+
+  - alert: batang_server_storage
+    expr: node_filesystem_free_bytes{instance="spgdt.setyadhiputra.com:9100", mountpoint ="/rootfs"} / node_filesystem_size_bytes{instance="spgdt.setyadhiputra.com:9100", mountpoint ="/rootfs"} * 100 < 20
+    for: 60m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Server storage is almost full"
+      description: "Server storage available is {{ humanize $value}}%. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+##______________________________________________________________________________________________________________________________________________________________________________________##
