@@ -1,0 +1,3 @@
+[submodule "prom-bot"]
+	path = prom-bot
+	url = https://github.com/setyadhiputrad/prom-bot
