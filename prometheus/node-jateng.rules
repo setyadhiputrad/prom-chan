@@ -1,23 +1,14 @@
 groups:
 - name: jateng_host
   rules:
-  - alert: jateng_server_down
-    expr: up{instance="node.jateng.tanggap.in:80"} == 0
-    for: 30s
-    labels:
-      severity: critical
-    annotations:
-      summary: "Monitor server"
-      description: "Monitor service is down. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
-  
   - alert: jateng_server_cpu
-    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle",instance="node.jateng.tanggap.in:80"}[5m])) * 100) > 90
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle",instance="node.jateng.tanggap.in:80"}[1m])) * 100) > 90
     for: 30s
     labels:
       severity: warning
     annotations:
       summary: "Server cpu high load"
-      description: "Server average load is {{ $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
+      description: "Server average load is {{ humanize $value }}. Reported by instance {{ $labels.instance }} of job {{ $labels.job }}."
 
   - alert: jateng_server_network
     expr: node_network_up{instance="node.jateng.tanggap.in:80", device="ens18"} == 0
@@ -30,7 +21,7 @@ groups:
 
   - alert: jateng_server_memory
     expr: node_memory_MemAvailable_bytes{instance="node.jateng.tanggap.in:80"} / node_memory_MemTotal_bytes{instance="node.jateng.tanggap.in:80"} * 100 < 15
-    for: 60m
+    for: 10m
     labels:
       severity: warning
     annotations:
@@ -39,7 +30,7 @@ groups:
 
   - alert: jateng_server_storage
     expr: node_filesystem_free_bytes{instance="node.jateng.tanggap.in:80", mountpoint ="/"} / node_filesystem_size_bytes{instance="node.jateng.tanggap.in:80", mountpoint ="/"} * 100 < 20
-    for: 60m
+    for: 10m
     labels:
       severity: warning
     annotations:
